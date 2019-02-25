@@ -1,0 +1,41 @@
+﻿@using RazorCodeGen.Models
+@*@model MetaModel*@
+@{
+    var ns = "Models";
+}
+
+@functions{
+    public static string GetDotNetPropType(Field fld)
+    {
+        switch (fld.Type)
+        {
+            case FieldType.number:
+                return "decimal";
+            case FieldType.text:
+                return "string";
+            case FieldType.date:
+                return "DateTime";
+            case FieldType.boolean:
+                return "bool";
+            case FieldType.guid:
+                return "Guid";
+            default:
+                return "string";
+        }
+    }
+
+}
+using System;
+
+namespace @(ns)
+{
+
+    public class @Model.Name
+    {
+    @foreach (var fld in Model.Fields)
+    {
+        <text>public @GetDotNetPropType(fld) @fld.Name { get; set; }</text>
+    }
+    }
+
+}

@@ -1,0 +1,19 @@
+﻿@using RazorCodeGen.Models
+@*@model EnumModel*@
+@{
+    var ns = "Models";
+}
+using System;
+
+namespace @(ns)
+{
+
+    public enum @Model.Name
+    {
+    @foreach (var kvp in Model.Data)
+    {
+        <text>@(kvp.Key) = @(kvp.Value),</text>
+    }
+    }
+
+}
