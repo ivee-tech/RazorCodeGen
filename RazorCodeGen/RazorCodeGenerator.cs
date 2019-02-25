@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace RazorCodeGen
 {
@@ -23,7 +24,11 @@ namespace RazorCodeGen
         {
             try
             {
-                var template = Template.Compile(input.Template);
+                var templateString = input.Template;
+                var pattern = @"\@model\s+[A-Za-z]+[A-Za-z0-9_\.]*";
+                string replacement = "@*$1*@";
+                templateString = Regex.Replace(templateString, pattern, replacement);
+                var template = Template.Compile(templateString);
                 var code = template.Render(input.Model);
                 this.Output = code;
                 return true;
