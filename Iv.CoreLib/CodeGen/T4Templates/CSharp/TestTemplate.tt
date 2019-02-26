@@ -1,0 +1,9 @@
+﻿<#@ template language="C#" #>
+<#@ include file="T4Toolbox.tt" #>
+<#@ include file="Assemblies.tt" #>
+<#@ include file="TestReusableTemplate.tt" #>
+
+<#
+    TestReusableTemplate t = new TestReusableTemplate();
+    t.Render();
+#>

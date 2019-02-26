@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Iv.Metadata;
+using RazorCodeGen.Customers;
 using RazorCodeGen.Models;
 
 namespace RazorCodeGen
@@ -12,9 +14,9 @@ namespace RazorCodeGen
         static void Main(string[] args)
         {
             var meta = new MetaModel { Name = "Person" };
-            meta.Fields.Add(new Field() { Name = "Id", Type = FieldType.guid });
-            meta.Fields.Add(new Field() { Name = "Name", Type = FieldType.text });
-            meta.Fields.Add(new Field() { Name = "Dob", Type = FieldType.date });
+            meta.Fields.Add(new Field() { Name = "Id", Type = FieldTypes.guid });
+            meta.Fields.Add(new Field() { Name = "Name", Type = FieldTypes.text });
+            meta.Fields.Add(new Field() { Name = "Dob", Type = FieldTypes.date });
             var output = GenerateCode<MetaModel>(meta, @"Templates\Model.cshtml");
             if(output.Result)
                 Console.WriteLine(output.Data);
@@ -31,6 +33,29 @@ namespace RazorCodeGen
                 Console.WriteLine(output.Data);
             else
                 Console.WriteLine(output.Message);
+
+            int index = new Random().Next(1, 999);
+            string scriptName = $"Script{index}";
+            CmdLetHelper.CreateScriptXml(index);
+            var cmdLet = CmdLetHelper.LoadScriptXml(scriptName);
+            output = GenerateCode<CmdLet>(cmdLet, @"Templates\Script.cshtml");
+            if (output.Result)
+                Console.WriteLine(output.Data);
+            else
+                Console.WriteLine(output.Message);
+
+            var cmdHelper = new CustomerDataCommandHelper();
+            var c = cmdHelper.Create($"Contoso-{new Random().Next(1, 9999)}");
+            c = cmdHelper.UpdateWithSpec(c.Id);
+            var qryHelper = new CustomerDataQueryHelper();
+            c = qryHelper.Find(c.Id);
+            var list = qryHelper.GetAll().ToList();
+            output = GenerateCode(list, @"Templates\Customers.cshtml");
+            if (output.Result)
+                Console.WriteLine(output.Data);
+            else
+                Console.WriteLine(output.Message);
+
 
             Console.ReadKey();
         }

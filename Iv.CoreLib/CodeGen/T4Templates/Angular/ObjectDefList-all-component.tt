@@ -1,0 +1,87 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".ts" fileName="$ObjDefList$.component.ts" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#@ include file="../TypeScript/Common.tt" #>
+<#
+//Parameters
+string objDefName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+#>
+import { Component, Inject, Input } from '@angular/core';
+import { IDataService, <#= objDefName #> } from '../common';
+
+<# CodeGen(objDefName); #>
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+			string listName = o.ListName.ToCamelCase();
+#>
+@Component({
+  selector: '<#= listName.SplitLowerCase("-") #>',
+  template: require('./<#= o.ListName #>.html')
+})
+export class <#= o.ListName #>Component {
+    private <#= listName #>: <#= o.Name #>[];
+
+    constructor(@Inject('IDataService') private dataSvc: IDataService) {
+		this.dataSvc.<#= o.ListName.ToCamelCase() #>.subscribe(result => {
+            this.<#= listName #> = result;
+            console.log(this.<#= listName #>);
+        });
+        this.loadAll<#= o.ListName #>();
+    }
+
+    ngOnInit() {
+    }
+			
+<#+
+			GenerateLoadAll(o);
+			GenerateDelete(o);
+#>
+}
+<#+
+		}
+	}
+	
+	private void GenerateLoadAll(ObjectDef o)
+	{
+		string listName = o.ListName.ToCamelCase();
+#>
+    protected loadAll<#= o.ListName #>() {
+        this.dataSvc.loadAll<#= o.ListName #>();
+    }
+
+<#+
+	
+	}
+	
+	private void GenerateDelete(ObjectDef o)
+	{
+		var keyProp = o.GetKey();
+		string keyName = keyProp.Name.ToCamelCase();
+#>
+    protected delete<#= o.Name #>(<#= keyName #>: <#= MapType(keyProp.TypeName) #>) {
+        this.dataSvc.delete<#= o.Name #>(<#= keyName #>);
+        return false;
+    }
+
+<#+
+	
+	}
+
+#>

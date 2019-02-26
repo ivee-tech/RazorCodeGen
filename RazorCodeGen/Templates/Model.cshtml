@@ -9,15 +9,15 @@
     {
         switch (fld.Type)
         {
-            case FieldType.number:
+            case FieldTypes.number:
                 return "decimal";
-            case FieldType.text:
+            case FieldTypes.text:
                 return "string";
-            case FieldType.date:
+            case FieldTypes.date:
                 return "DateTime";
-            case FieldType.boolean:
+            case FieldTypes.boolean:
                 return "bool";
-            case FieldType.guid:
+            case FieldTypes.guid:
                 return "Guid";
             default:
                 return "string";

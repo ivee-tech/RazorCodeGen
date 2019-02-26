@@ -1,0 +1,8 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Assemblies.tt" #>
+<#
+	// var o = ObjectDefLoader.Load(@"Server=INSDESKTOP01\SQL2008;Database=IveeDev;Integrated Security=SSPI", "ObjDef1");
+	var o = ObjectDefLoader.Load(@"Server=INSXPS\SQLEXPR2012;Database=IveeDev;Integrated Security=SSPI", "ObjDef1");
+#>
+
+<#= o.Name #>

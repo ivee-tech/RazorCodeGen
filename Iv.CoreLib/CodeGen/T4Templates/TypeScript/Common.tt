@@ -1,0 +1,64 @@
+﻿<#+
+
+public static string MapType(string typeName)
+{
+	if(string.IsNullOrEmpty(typeName))
+	{
+		return "any";
+	}
+
+	switch(typeName)
+	{
+		case ObjectDefPropertyTypes.String:
+			return "string";
+		case ObjectDefPropertyTypes.DateTime:
+			return "Date";
+		case ObjectDefPropertyTypes.Int16:
+		case ObjectDefPropertyTypes.Int32:
+		case ObjectDefPropertyTypes.Int64:
+		case ObjectDefPropertyTypes.Decimal:
+		case ObjectDefPropertyTypes.Single:
+		case ObjectDefPropertyTypes.Double:
+			return "number";
+		case ObjectDefPropertyTypes.Boolean:
+			return "boolean";
+		case ObjectDefPropertyTypes.Tel:
+			return "string";
+		case ObjectDefPropertyTypes.Email:
+			return "string";
+		default:
+			return "any";
+	}
+}
+
+public static string MapTypeUI(string typeName)
+{
+	if(string.IsNullOrEmpty(typeName))
+	{
+		return "text";
+	}
+
+	switch(typeName)
+	{
+		case ObjectDefPropertyTypes.String:
+			return "text";
+		case ObjectDefPropertyTypes.DateTime:
+			return "date";
+		case ObjectDefPropertyTypes.Int16:
+		case ObjectDefPropertyTypes.Int32:
+		case ObjectDefPropertyTypes.Int64:
+		case ObjectDefPropertyTypes.Decimal:
+		case ObjectDefPropertyTypes.Single:
+		case ObjectDefPropertyTypes.Double:
+			return "number";
+		case ObjectDefPropertyTypes.Boolean:
+			return "checkbox";
+		case ObjectDefPropertyTypes.Tel:
+			return "tel";
+		case ObjectDefPropertyTypes.Email:
+			return "email";
+		default:
+			return "text";
+	}
+}
+#>

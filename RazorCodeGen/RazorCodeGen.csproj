@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
@@ -39,6 +45,7 @@
       <HintPath>..\packages\RazorTemplates.1.2.1\lib\net40\RazorTemplates.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -72,10 +79,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CmdLetHelper.cs" />
+    <Compile Include="CustomerDataCommandHelper.cs" />
+    <Compile Include="CustomerDataQueryHelper.cs" />
+    <Compile Include="Customers\Customer.cs" />
+    <Compile Include="Customers\CustomerDataCommand.cs" />
+    <Compile Include="Customers\CustomerDataCommandSpecification.cs" />
+    <Compile Include="Customers\CustomerDataContext.cs" />
+    <Compile Include="Customers\CustomerDataQuery.cs" />
+    <Compile Include="Customers\CustomerDataQuerySpecification.cs" />
+    <Compile Include="Customers\CustomerModelBuilder.cs" />
+    <Compile Include="Customers\DeliveryProduct.cs" />
     <Compile Include="ICodeGenerator.cs" />
     <Compile Include="Models\EnumModel.cs" />
     <Compile Include="Models\Field.cs" />
-    <Compile Include="Models\FieldType.cs" />
+    <Compile Include="Models\FieldTypes.cs" />
     <Compile Include="Models\MetaModel.cs" />
     <Compile Include="OutputModel.cs" />
     <Compile Include="Program.cs" />
@@ -88,6 +106,12 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="Templates\Customers.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\Script.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Templates\Enum.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -95,6 +119,21 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Templates\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Iv.CoreLib\Iv.CoreLib.csproj">
+      <Project>{a25216c0-cc6e-48ba-abd3-d8875b4a852e}</Project>
+      <Name>Iv.CoreLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Iv.Data.GenericEF\Iv.Data.GenericEF.csproj">
+      <Project>{edde306b-79ac-4679-aa89-e44060f82928}</Project>
+      <Name>Iv.Data.GenericEF</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Files\Scripts.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

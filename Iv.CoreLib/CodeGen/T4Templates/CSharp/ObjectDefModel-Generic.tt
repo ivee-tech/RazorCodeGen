@@ -1,0 +1,206 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" fileName="$ObjDef$Model.cs" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string bns;
+string cns;
+string filterOrderBy;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	bns = Host.ResolveParameterValue(null, null, "bns");
+	bns = string.IsNullOrEmpty(bns) ? "Domain" : bns;
+}
+catch
+{
+	bns = "Domain";
+}
+try
+{
+	cns = Host.ResolveParameterValue(null, null, "cns");
+	cns = string.IsNullOrEmpty(cns) ? "Common" : cns;
+}
+catch
+{
+	cns = "Common";
+}
+try
+{
+	filterOrderBy = Host.ResolveParameterValue(null, null, "filterOrderBy");
+}
+catch
+{
+	filterOrderBy = "null";
+}
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.ComponentModel;
+using System.Runtime.Serialization;
+
+using Iv.Common;
+using Iv.Data;
+using <#= cns #>;
+
+namespace <#= bns #>
+{
+<# CodeGen(objDefName, filterOrderBy); #>
+}
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName, string filterOrderBy)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+	public partial class <#= o.Name #>Model
+	{
+
+        private IRepositoryObjectDef<<#= o.Name #>> rep;
+
+		public <#= o.Name #>Model()
+		{
+		}
+
+        public <#= o.Name #>Model(IRepositoryObjectDef<<#= o.Name #>> rep) : this()
+        {
+            this.rep = rep;
+        }
+			
+<#+
+			GenerateMethod(o);
+			GenerateGetAll(o);
+			GenerateFilter(o, filterOrderBy);
+			GenerateGet(o);
+			GenerateGetNew(o);
+			GenerateSave(o);
+			GenerateDelete(o);
+#>
+	}
+<#+
+		}
+	}
+	
+	private void GenerateMethod(ObjectDef o)
+	{
+#>
+
+<#+
+	}
+
+	private void GenerateGetAll(ObjectDef o)
+	{
+#>
+        public IEnumerable<<#= o.Name #>> GetAll()
+        {
+            IQueryable<<#= o.Name #>> list = rep.GetAll();
+            return list.ToList();
+        }
+
+<#+
+	}
+
+	private void GenerateFilter(ObjectDef o, string filterOrderBy)
+	{
+#>
+        public PageData<<#= o.Name #>> Filter(Condition cond, int pageNo, int pageSize)
+        {
+            int total = -1;
+            IQueryable<<#= o.Name #>> list = rep.Filter(cond, "<#= filterOrderBy #>", out total, pageNo, pageSize);
+            var data = new PageData<<#= o.Name #>>() { List = list, PageIndex = pageNo, PageSize = pageSize, RecordCount = total };
+            return data;
+        }
+
+<#+
+	}
+	
+	private void GenerateGet(ObjectDef o)
+	{
+		var key = o.GetKey();
+		var keyName = key.Name.ToCamelCase();
+#>
+        public <#= o.Name #> Get(<#= key.TypeName #> <#= keyName #>)
+        {
+            <#= o.Name #> o = rep.Find(<#= keyName #>);
+            return o;
+        }
+
+<#+
+	}
+	
+	private void GenerateGetNew(ObjectDef o)
+	{
+#>
+        public <#= o.Name #> GetNew()
+        {
+            <#= o.Name #> o = new <#= o.Name #>()
+            {
+<#+
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			string propName = p.Name;
+			string propDisplayName = p.DisplayName;
+			string typeName = p.NetTypeName;
+			bool isKey = p.IsKey;
+#>
+				<#= index == 0 ? "" : ", " #><#= propName #> = default(<#= typeName #>)
+<#+
+			index++;
+		}
+#>
+            };
+            o.SetNew();
+            return o;
+        }
+
+<#+
+	}
+
+	
+	private void GenerateSave(ObjectDef o)
+	{
+#>
+        public void Save(<#= o.Name #> o)
+        {
+            if (o.IsNew)
+            {
+                rep.Create(o);
+            }
+            else
+            {
+                rep.Update(o);
+            }
+        }
+
+<#+
+	}
+	
+	private void GenerateDelete(ObjectDef o)
+	{
+#>
+        public void Delete(<#= o.Name #> o)
+        {
+            rep.Delete(o);
+        }
+<#+
+	}
+	
+#>

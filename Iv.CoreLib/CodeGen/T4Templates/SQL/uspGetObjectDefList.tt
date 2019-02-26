@@ -1,0 +1,112 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".sql" fileName="uspGet$ObjDefList$.sql" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string schemaName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	schemaName = Host.ResolveParameterValue(null, null, "schemaName");
+	schemaName = string.IsNullOrEmpty(schemaName) ? "dbo" : schemaName;
+}
+catch
+{
+	schemaName = "dbo";
+}
+#>
+
+<# CodeGen(objDefName, schemaName); #>
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName, string schemaName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+CREATE PROCEDURE [<#= schemaName #>].[uspGet<#= o.ListName #>]
+<#+
+			GenerateFilterParameters(o);
+#>
+AS
+
+SELECT 
+<#+
+			GenerateColumns(o);
+#>
+FROM <#= schemaName #>.<#= o.EntityName #>
+<#+
+			
+#>
+-- WHERE
+<#+
+			GenerateWhere(o);
+#>
+
+RETURN 0
+
+<#+
+		}
+	}
+	
+	private void GenerateFilterParameters(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.Where(p => false /* Filter */).OrderBy(p => p.PropertyOrder))
+		{
+			
+			string columnName = p.ColumnName;
+			string typeName = TypeConversion.GetSqlDbTypeFromDotNetType(p.TypeName).ToString();
+#>
+		<#= index > 0 ? ", " : "" #>@<#= columnName #> <#= typeName #><#= p.TypeName == "String" ? "(" + p.Length.ToString() + ")" : "" #>
+
+<#+
+			index++;
+		}
+	}
+	
+	private void GenerateColumns(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			
+			string columnName = p.ColumnName;
+#>
+		<#= index > 0 ? ", " : "" #><#= columnName #>
+
+<#+
+			index++;
+		}
+	}
+
+	private void GenerateWhere(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.Where(p => false /* Filter */).OrderBy(p => p.PropertyOrder))
+		{
+			
+			string columnName = p.ColumnName;
+#>
+		<#= index > 0 ? " AND " : "" #><#= columnName #> = @<#= columnName #>
+
+<#+
+			index++;
+		}
+	}
+	
+#>

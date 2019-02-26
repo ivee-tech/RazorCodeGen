@@ -9,6 +9,6 @@ namespace RazorCodeGen.Models
     public class Field
     {
         public string Name { get; set; }
-        public FieldType Type { get; set; }
+        public FieldTypes Type { get; set; }
     }
 }

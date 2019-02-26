@@ -1,0 +1,88 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" fileName="$ObjDef$.cs" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string cns;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	cns = Host.ResolveParameterValue(null, null, "cns");
+	cns = string.IsNullOrEmpty(cns) ? "Controllers" : cns;
+}
+catch
+{
+	cns = "Common";
+}
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Iv.Common;
+using Iv.Data;
+
+namespace <#= cns #>
+{
+<# CodeGen(objDefName); #>
+}
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+	public partial class <#= o.Name #>
+	{
+
+		public <#= o.Name #>()
+		{
+		}
+			
+<#+
+			GenerateMethod(o);
+			GenerateMethodProps(o);
+#>
+	}
+<#+
+		}
+	}
+	
+	private void GenerateMethod(ObjectDef o)
+	{
+#>
+
+<#+
+	
+	}
+	
+	private void GenerateMethodProps(ObjectDef o)
+	{
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			string propName = p.Name;
+			string propDisplayName = p.DisplayName;
+			string typeName = p.NetTypeName;
+			bool isKey = p.IsKey;
+#>
+
+<#+
+		}
+	
+	}
+#>

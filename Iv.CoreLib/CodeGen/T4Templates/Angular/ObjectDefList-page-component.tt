@@ -1,0 +1,117 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".ts" fileName="$ObjDefList$.component.ts" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+#>
+import { Component, Inject, Input } from '@angular/core';
+import { IDataService, <#= objDefName #>, PageComponent } from '../common';
+
+<# CodeGen(objDefName); #>
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+			string listName = o.ListName.ToCamelCase();
+#>
+@Component({
+  selector: '<#= listName.SplitToLowerCase("-") #>',
+  template: require('./<#= o.ListName #>.html')
+})
+export class <#= o.ListName #>Component extends PageComponent {
+    private <#= listName #>: <#= o.Name #>[];
+
+    constructor( @Inject('IDataService') private dataSvc: IDataService) {
+        super();
+		this.dataSvc.<#= listName #>.subscribe(result => {
+            this.<#= listName #> = result;
+            console.log(this.<#= listName #>);
+        });
+		this.load<#= o.ListName #>();
+    }
+
+    ngOnInit() {
+    }
+			
+<#+
+			GenerateLoad(o);
+			GeneratePageMethods(o);
+			GenerateDelete(o);
+#>
+}
+<#+
+		}
+	}
+	
+	private void GenerateLoad(ObjectDef o)
+	{
+		string listName = o.ListName.ToCamelCase();
+#>
+    protected load<#= o.ListName #>() {
+        this.dataSvc.load<#= o.ListName #>(this.pageNo);
+    }
+
+<#+
+	
+	}
+	
+	private void GeneratePageMethods(ObjectDef o)
+	{
+#>
+    protected goToPage(pageNo: number) {
+        super.goToPage(pageNo);
+        this.load<#= o.ListName #>();
+        return false;
+    }
+
+    protected goToPrevPage() {
+        if (super.goToPrevPage()) {
+            this.load<#= o.ListName #>();
+        }
+        return false;
+    }
+
+    protected goToNextPage() {
+        if (super.goToNextPage()) {
+            this.load<#= o.ListName #>();
+        }
+        return false;
+    }
+
+<#+
+	
+	}
+	
+	private void GenerateDelete(ObjectDef o)
+	{
+		var keyProp = o.GetKey();
+		string keyName = keyProp.Name.ToCamelCase();
+#>
+    protected delete<#= o.Name #>(<#= keyName #>: <#= MapType(keyProp.TypeName) #>) {
+        this.dataSvc.delete<#= o.Name #>(<#= keyName #>).subscribe(result => {
+            console.log(result);
+        });
+        return false;
+    }
+
+<#+
+	
+	}
+
+#>

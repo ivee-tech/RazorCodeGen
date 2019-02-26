@@ -1,0 +1,11 @@
+﻿<#@ include file="Assemblies.tt" #>
+
+public class TestReusableTemplate : Template
+{
+
+    public override string TransformText()
+    {
+		WriteLine("Lettle este bun :)");
+		return this.GenerationEnvironment.ToString();
+	}
+}

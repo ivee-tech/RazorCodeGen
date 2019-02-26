@@ -1,0 +1,22 @@
+﻿<#+
+public static string ConnectionString 
+{
+	get
+	{
+		string env = Environment.GetEnvironmentVariable("IVEE_ENV");
+		if("SC".Equals(env, StringComparison.InvariantCultureIgnoreCase)) 
+		{
+			return @"Server=INSSURFACEPRO3\SQLEXPRESS;Database=IveeSC;User ID=NewsagencyUser;Password=NewsagencyABC890!";
+		}
+		if("TEST".Equals(env, StringComparison.InvariantCultureIgnoreCase)) 
+		{
+			return @"Server=INSDESKTOP01\SQL2008;Database=IveeTest;Integrated Security=SSPI";
+		}
+		if(string.IsNullOrEmpty(env) || "DEV".Equals(env, StringComparison.InvariantCultureIgnoreCase)) 
+		{
+			return @"Server=INSDESKTOP01\SQL2008;Database=IveeDev;Integrated Security=SSPI";
+		}
+		return @"Server=INSDESKTOP01\SQL2008;Database=IveeDev;Integrated Security=SSPI";
+	}
+}
+#>

@@ -1,0 +1,100 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".ts" fileName="$ObjDef$.mapping.ts" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#@ include file="Common.tt" #>
+<#
+//Parameters
+string objDefName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+#>
+<# CodeGen(objDefName); #>
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+import { ModelBase } from './model-base.model';
+import { <#= o.Name #> } from './<#= o.Name #>.model'; 
+
+export class <#= o.Name #>Mapping {// extends modelBase {
+
+    public static mapData<#= o.Name #>(d: any): <#= o.Name #> {
+        let t: <#= o.Name #> = <<#= o.Name #>>{
+<#+
+			GenerateProperties(o);
+#>
+		}
+        return t;
+	}
+
+    public static mapData<#= o.ListName #>(d: Array<any>): Array<<#= o.Name #>> {
+        let list = new Array<<#= o.Name #>>();
+        for (let i = 0; i < d.length; i++) {
+            list.push(this.mapData<#= o.Name #>(d[i]));
+        }
+        return list;
+    }
+
+    public static map<#= o.Name #>Data(t: <#= o.Name #>): any {
+        let d: any = {
+<#+
+			GenerateDataProperties(o);
+#>
+		}
+        ModelBase.mapModelData(t, d);
+        return d;
+	}
+<#+
+#>
+}
+<#+
+		}
+	}
+	
+	private void GenerateProperties(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			string propName = p.Name;
+			string propDisplayName = p.DisplayName;
+			string typeName = MapType(p.TypeName);
+			bool isKey = p.IsKey;
+#>
+			<#= index == 0 ? "" : ", " #><#= propName.ToCamelCase() #>: d.<#= propName #>
+
+<#+
+			index++;
+		}
+	}
+	
+	private void GenerateDataProperties(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			string propName = p.Name;
+			string propDisplayName = p.DisplayName;
+			string typeName = MapType(p.TypeName);
+			bool isKey = p.IsKey;
+#>
+			<#= index == 0 ? "" : ", " #><#= propName #>: t.<#= propName.ToCamelCase() #>
+
+<#+
+			index++;
+		}
+	}
+#>

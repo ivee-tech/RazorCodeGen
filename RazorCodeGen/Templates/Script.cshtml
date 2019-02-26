@@ -1,0 +1,14 @@
+﻿@model Iv.Metadata.CmdLet
+
+@{
+    var ns = "Models";
+    var cmdParams = "";
+}
+
+@foreach(var param in Model.Parameters)
+{
+    <text>@param.Name = '@param.Value'</text>
+    cmdParams += " -" + param.Name + " " + param.Name;
+}
+
+@Model.Name @cmdParams

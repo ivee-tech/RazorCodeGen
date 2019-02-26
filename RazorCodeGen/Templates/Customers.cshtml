@@ -1,0 +1,22 @@
+﻿@using RazorCodeGen.Customers
+@model IEnumerable<Customer>
+
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Commencement Date</th>
+        <th>Has Delivery Fees</th>
+    </tr>
+    @foreach (var c in Model)
+    {
+    <tr>
+        <td>@c.Id</td>
+        <td>@c.Name</td>
+        <td>@c.Description/td>
+        <td>@c.CommencementDate</td>
+        <td>@c.HasDeliveryFees</td>
+    </tr>
+    }
+</table>

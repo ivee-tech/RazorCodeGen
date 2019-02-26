@@ -1,13 +1,14 @@
 # RazorCodeGen - code generator using Razor Templates
 
 Generate code based on your models and Razor templates.
+The code uses the [Razor Templates](https://github.com/volkovku/RazorTemplates) Nuget package.
 
 ## Example
 
 Let's say we have a model called <code>EnumModel</code> with two properties: <code>string Name</code> and <code>IDictionary<string, int> Data</code>.
 We want to generate an enum named using the <code>Name</code> property and the values based om <code>Data</code> dictionary.
 
-The <code>EnumModel</code>
+The <code>EnumModel</code> class is shiwn below:
 ``` C#
     public class EnumModel
     {
@@ -49,7 +50,7 @@ namespace @(ns)
 ```
 
 Say we want to generate a Currency enumeration, with a couple of values: AUD, USD, EUR, GBP.
-The generation code is the following:
+This is the generation code:
 
 ``` C#
     var enumModel = new EnumModel() { Name = "Currency" };
@@ -82,3 +83,23 @@ namespace Models
 
 }
 ```
+
+The <code>GenerateCode</code> method is displayed partially  below:
+``` C#
+    var output = new OutputModel<string>();
+
+    ICodeGenerator<RazorCodeGenInput, string> codeGen = new RazorCodeGenerator();
+    var input = new RazorCodeGenInput()
+    {
+        Template = System.IO.File.ReadAllText(templateFilePath),
+        Model = inputModel
+    };
+
+    var result = codeGen.Process(input);
+```
+
+Other examples include:
+ - generate a class based on a simple metadata model (<code>MetaModel</code> class and *Model.cshtml* template)
+ - generate a PowerShell script based on a specific cmdlet metadata, stored in an Xml file (<code>CmdLet</code> class and *Script.cshtml* template)
+ - generate a customers HTML table, based on a list of customers stored in a SQL Server DB (<code>Customer</code> class and *Customers.cshtml* template)
+ 

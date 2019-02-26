@@ -1,0 +1,273 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" fileName="$ObjDef$Controller.cs" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string sns;
+string bns;
+string cns;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	sns = Host.ResolveParameterValue(null, null, "sns");
+	sns = string.IsNullOrEmpty(sns) ? "Controllers" : sns;
+}
+catch
+{
+	sns = "Controllers";
+}
+try
+{
+	cns = Host.ResolveParameterValue(null, null, "cns");
+	cns = string.IsNullOrEmpty(cns) ? "Controllers" : cns;
+}
+catch
+{
+	cns = "Common";
+}
+try
+{
+	bns = Host.ResolveParameterValue(null, null, "bns");
+	bns = string.IsNullOrEmpty(bns) ? "Domain" : bns;
+}
+catch
+{
+	bns = "Domain";
+}
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Configuration;
+
+using Iv.Common;
+using Iv.Data;
+using Iv.Data.Ado;
+using <#= cns #>;
+using <#= bns #>;
+
+namespace <#= sns #>
+{
+<# CodeGen(objDefName); #>
+}
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+	public partial class <#= o.Name #>Controller : ApiController
+	{
+
+		public <#= o.Name #>Controller()
+		{
+		}
+			
+<#+
+			GenerateGetAll(o);
+			GenerateGetPage(o);
+			GenerateGet(o);
+			GenerateGetNew(o);
+			GeneratePost(o);
+			GeneratePut(o);
+			GenerateDelete(o);
+#>
+	}
+<#+
+		}
+	}
+	
+	private void GenerateMethod(ObjectDef o)
+	{
+#>
+
+<#+
+	
+	}
+	
+	private void GenerateGetAll(ObjectDef o)
+	{
+#>
+        [ActionName("list")]
+        public IEnumerable<<#= o.Name #>> GetAll()
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(odvRep);
+                var list = model.GetAll();
+                return list;
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateGetPage(ObjectDef o)
+	{
+#>
+        [ActionName("page")]
+        public PageData<<#= o.Name #>> GetPage(int? pageNo)
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new TodoModel(odvRep);
+                int pageNumber = pageNo.HasValue ? pageNo.Value : 1;
+                int pageSize = 20;
+                var data = model.Filter(null, pageNumber, pageSize);
+                return data;
+            }
+        }
+
+<#+
+
+	}
+	
+	private void GenerateGet(ObjectDef o)
+	{
+#>
+        [ActionName("item")]
+        public <#= o.Name #> Get(int id)
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new TodoModel(odvRep);
+                var o = model.Get(id);
+                return o;
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateGetNew(ObjectDef o)
+	{
+#>
+        [ActionName("item-new")]
+        public <#= o.Name #> GetNew()
+        {
+            var model = new TodoModel();
+            var o = model.GetNew();
+            return o;
+        }
+
+<#+
+	
+	}
+	
+	private void GeneratePost(ObjectDef o)
+	{
+#>
+        [ActionName("post")]
+        [HttpPost]
+        public void Post(int id, [FromBody]<#= o.Name #> value)
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new TodoModel(odvRep);
+                // value.SetNew();
+                var ov = odvRep.Find(id);
+                if (ov == null)
+                {
+                    value.SetNew();
+                }
+                else
+                {
+                    value.SetDirty();
+                }
+                model.Save(value);
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GeneratePut(ObjectDef o)
+	{
+#>
+        [ActionName("put")]
+        public void Put(int id, [FromBody]<#= o.Name #> value)
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new TodoModel(odvRep);
+                var ov = odvRep.Find(id);
+                if(ov == null)
+                {
+                    value.SetNew();
+                }
+                else
+                {
+                    value.SetDirty();
+                }
+                model.Save(value);
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateDelete(ObjectDef o)
+	{
+#>
+        [ActionName("delete")]
+        public void Delete(int id)
+        {
+            string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+            using (IRepository<ObjectDef> odRep = new ObjectDefAdoRepository(cnnString))
+            using (IRepository<ObjectDefValues> odvRep = new ObjectDefValuesSqlDataRepository(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                ((ObjectDefValuesSqlDataRepository)odvRep).SetMetadata(objDef);
+                var model = new TodoModel(odvRep);
+                var value = model.Get(id);
+                value.SetDeleted();
+                model.Delete(value);
+            }
+        }
+
+<#+
+	
+	}
+#>

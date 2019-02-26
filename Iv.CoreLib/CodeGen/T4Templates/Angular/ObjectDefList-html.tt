@@ -1,0 +1,121 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".html" fileName="$ObjDefList$.html" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string usePagination;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	usePagination = Host.ResolveParameterValue(null, null, "usePagination");
+}
+catch
+{
+	usePagination = "false";
+}
+bool bUsePagination = usePagination == "true";
+#>
+<# CodeGen(objDefName, bUsePagination); #>
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName, bool usePagination)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+			var props = o.Properties.OrderBy(p => p.PropertyOrder).ToList();
+			var keyProp = props.Where(p => p.IsKey).First();
+			var displayProps = props.Where(p => p.ListDisplay).ToList();
+			var userKeyProps = props.Where(p => p.IsUserKey);
+			ObjectDefProperty userKeyProp = userKeyProps.Any() ? userKeyProps.First() : displayProps.First();
+			string keyName = keyProp.Name.ToCamelCase();
+#>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <#= o.ListName #>
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <div>
+                    <a href="#" [routerLink]="['../<#= o.Name.SplitLowerCase("-") #>', '-1']">New</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+<#+
+			foreach(var p in displayProps)
+			{
+#>
+                                <th><#= p.DisplayName #></th>
+<#+
+			}
+#>
+								<th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of <#= o.ListName.ToCamelCase() #>">
+                                <td><a [routerLink]="['../<#= o.Name.SplitLowerCase("-") #>', item.<#= keyName #>]">{{item.<#= userKeyProp.Name.ToCamelCase() #>}}</a></td>
+<#+
+			for(int i = 1; i < displayProps.Count; i++)
+			{
+				var p = displayProps[i];
+#>
+                                <td>{{item.<#= p.Name.ToCamelCase() #>}}</td>
+<#+
+			}
+#>
+                                <td><a href="#" (click)="delete<#= o.Name #>(item.<#= keyName #>)"><i class="fa fa-times"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+<#+
+			if(usePagination)
+			{
+#>
+                    <nav>
+                        <ul class="pagination">
+                            <li>
+                                <a href="#" aria-label="Previous" (click)="goToPrevPage()">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li *ngFor="let p of pages"><a href="#" (click)="goToPage(p)" [ngClass]="{active: p === pageNo}">{{p}}</a></li>
+                            <li>
+                                <a href="#" aria-label="Next" (click)="goToNextPage()">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+<#+
+			}
+#>
+				</div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+</div>
+<#+
+		}
+	}
+	
+#>

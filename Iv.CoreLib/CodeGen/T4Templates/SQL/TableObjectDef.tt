@@ -1,0 +1,70 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".sql" fileName="table-$ObjDefList$.sql" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string schemaName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	schemaName = Host.ResolveParameterValue(null, null, "schemaName");
+	schemaName = string.IsNullOrEmpty(schemaName) ? "dbo" : schemaName;
+}
+catch
+{
+	schemaName = "dbo";
+}
+#>
+
+<# CodeGen(objDefName, schemaName); #>
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName, string schemaName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		string entityName = o.EntityName;
+		if(o != null) 
+		{
+#>
+CREATE TABLE [<#= schemaName #>].[<#= entityName #>] (
+<#+
+			GenerateColumns(o);
+			var key = o.GetKey();
+#>
+	, CONSTRAINT PK_<#= entityName #> PRIMARY KEY(<#= key.Name #>)
+)
+GO
+
+<#+
+		}
+	}
+	
+	private void GenerateColumns(ObjectDef o)
+	{
+		int index = 0;
+		foreach(ObjectDefProperty p in o.Properties.OrderBy(p => p.PropertyOrder))
+		{
+			
+			string columnName = p.ColumnName;
+#>
+		<#= index > 0 ? ", " : "" #><#= columnName #> <#= TypeConversion.GetSqlDbTypeFromDotNetType(p.NetTypeName) #><#= "String".EqualsNoCase(p.TypeName) ? "(" + p.Length.ToString() + ")" : "" #>
+
+<#+
+			index++;
+		}
+	}
+	
+#>

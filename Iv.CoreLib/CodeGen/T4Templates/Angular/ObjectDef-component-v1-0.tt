@@ -1,0 +1,130 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".ts" fileName="$ObjDef$.component.ts" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#@ include file="../TypeScript/Common.tt" #>
+<#
+//Parameters
+string objDefName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+#>
+import { Component, Inject, Input } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { FORM_PROVIDERS, FORM_DIRECTIVES } from '@angular/common';
+import { IDataService, <#= objDefName #> } from '../common';
+
+<# CodeGen(objDefName); #>
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+			string name = o.Name.ToCamelCase();
+			var keyProp = o.GetKey();
+			string keyName = keyProp.Name.ToCamelCase();
+#>
+@Component({
+  selector: '<#= o.Name.SplitLowerCase("-") #>',
+  template: require('./<#= o.Name #>.html'),
+  directives: [...FORM_DIRECTIVES],
+  providers: [...FORM_PROVIDERS]
+})
+export class <#= o.Name #>Component {
+    @Input() <#= keyName #>: Observable<string>;
+    private <#= name #>: <#= o.Name #>;
+
+    constructor( @Inject('IDataService') private dataSvc: IDataService,
+        @Inject(ActivatedRoute) private route: ActivatedRoute
+    ) {
+		this.dataSvc.<#= name #>.subscribe(result => {
+            this.<#= name #> = result;
+            console.log(this.<#= name #>);
+        });
+		this.dataSvc.save<#= o.Name #>Result.subscribe(result => {
+            console.log(result);
+        });
+        this.<#= keyName #> = route.params.map(r => r['<#= keyName #>']);
+        this.<#= keyName #>.subscribe((<#= keyName #>) => {
+			if (<#= keyName #> === '-1') {
+				this.loadNew<#= o.Name #>();
+			}
+			else {
+				this.load<#= o.Name #>(<#= keyName #>);
+			}
+		});
+    }
+
+    ngOnInit() {
+    }
+			
+<#+
+			GenerateLoadNew(o);
+			GenerateLoad(o);
+			GenerateSave(o);
+			GenerateMisc(o);
+#>
+}
+<#+
+		}
+	}
+	
+	private void GenerateLoadNew(ObjectDef o)
+	{
+		string name = o.Name.ToLower();
+#>
+    protected loadNew<#= o.Name #>() {
+        this.dataSvc.loadNew<#= o.Name #>();
+    }
+<#+
+	
+	}
+	
+	private void GenerateLoad(ObjectDef o)
+	{
+		string name = o.Name.ToLower();
+		var keyProp = o.GetKey();
+		string keyName = keyProp.Name.ToCamelCase();
+#>
+    protected load<#= o.Name #>(<#= keyName #>: <#= MapType(keyProp.TypeName) #>) {
+        this.dataSvc.load<#= o.Name #>(<#= keyName #>);
+    }
+<#+
+	
+	}
+	
+	private void GenerateSave(ObjectDef o)
+	{
+		string name = o.Name.ToCamelCase();
+#>
+    protected save<#= o.Name #>() {
+        this.dataSvc.save<#= o.Name #>(this.<#= name #>);
+    }
+
+<#+
+	}
+
+	private void GenerateMisc(ObjectDef o)
+	{
+		string name = o.Name.ToCamelCase();
+#>
+
+    private setDate(datePropName: string, value: Date): void {
+        this.<#= name #>[datePropName] = value;
+    }
+<#+
+	}
+
+#>

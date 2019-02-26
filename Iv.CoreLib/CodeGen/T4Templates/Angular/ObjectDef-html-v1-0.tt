@@ -1,0 +1,187 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".html" fileName="$ObjDef$.html" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+#>
+<# CodeGen(objDefName); #>
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+			var props = o.Properties.OrderBy(p => p.PropertyOrder).ToList();
+			var keyProp = props.Where(p => p.IsKey).First();
+			var displayProps = props.Where(p => !p.IsKey).ToList();
+			string keyName = keyProp.Name.ToCamelCase();
+#>
+<div *ngIf="<#= o.Name.ToCamelCase() #>" class="panel panel-default">
+    <div class="panel-heading">
+        <#= o.DisplayName #> {{<#= o.Name.ToCamelCase() #>?.<#= displayProps[0].Name.ToCamelCase() #>}}
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-6">
+                <form role="form">
+<#+
+			foreach(var p in displayProps)
+			{
+				GenerateProperty(p);
+			}
+#>
+                </form>
+            </div>
+            <!-- /.col-lg-6 (nested) -->
+        </div>
+        <!-- /.row (nested) -->
+        <div class="row">
+            <div class="col-lg-6">
+                <button (click)="save<#= o.Name #>()">Save</button>
+            </div>
+        </div>
+    </div>
+    <!-- /.panel-body -->
+</div><#+
+		}
+	}
+	
+	private void GenerateProperty(ObjectDefProperty p)
+	{
+#>
+                    <div class="form-group">
+                        <label><#= p.DisplayName #></label>
+<#+
+		switch(p.TypeName)
+		{
+			case ObjectDefPropertyTypes.String:
+				if(p.Length <= 100)
+				{
+					GenerateString(p);
+				}
+				else
+				{
+					GenerateLargeString(p);
+				}
+				break;
+			case ObjectDefPropertyTypes.Byte:
+			case ObjectDefPropertyTypes.Int16:
+			case ObjectDefPropertyTypes.Int32:
+			case ObjectDefPropertyTypes.Int64:
+			case ObjectDefPropertyTypes.Decimal:
+			case ObjectDefPropertyTypes.Single:
+			case ObjectDefPropertyTypes.Double:
+				GenerateNumber(p);
+				break;
+			case ObjectDefPropertyTypes.Boolean:
+				GenerateCheckbox(p);
+				break;
+			case ObjectDefPropertyTypes.DateTime:
+				GenerateDate(p);
+				break;
+			case ObjectDefPropertyTypes.Tel:
+				GenerateTel(p);
+				break;
+			case ObjectDefPropertyTypes.Email:
+				GenerateEmail(p);
+				break;
+			case ObjectDefPropertyTypes.Password:
+				GeneratePassword(p);
+				break;
+			default:
+				GenerateString(p);
+				break;
+		}
+#>                        
+                    </div>
+<#+
+	}
+
+	private void GenerateNumber(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="number" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+
+	private void GenerateString(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="text" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+
+	private void GenerateDate(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="date" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> value='{{ <#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #> | date:"yyyy-MM-dd" }}'
+							(input)="setDate('<#= p.Name.ToCamelCase() #>', <#= p.Name.ToCamelCase() #>.value)">
+<#+
+	}
+
+	private void GenerateDateTime(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="datetime" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> value='{{ <#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #> | date:"yyyy-MM-dd" }}'
+							(input)="setDate('<#= p.Name.ToCamelCase() #>', <#= p.Name.ToCamelCase() #>.value)">
+<#+
+	}
+
+	private void GenerateLargeString(ObjectDefProperty p)
+	{
+#>
+						<textarea class="form-control" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>"></textarea>
+<#+
+	}
+
+	private void GenerateCheckbox(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" name="<#= p.Name.ToCamelCase() #>" type="checkbox" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+
+	private void GenerateTel(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="tel" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+
+	private void GenerateEmail(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="email" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+
+	private void GeneratePassword(ObjectDefProperty p)
+	{
+#>
+						<input class="form-control" type="password" name="<#= p.Name.ToCamelCase() #>" placeholder="Enter <#= p.DisplayName #>" 
+							#<#= p.Name.ToCamelCase() #> [(ngModel)]="<#= p.ObjectDefName.ToCamelCase() #>.<#= p.Name.ToCamelCase() #>">
+<#+
+	}
+#>

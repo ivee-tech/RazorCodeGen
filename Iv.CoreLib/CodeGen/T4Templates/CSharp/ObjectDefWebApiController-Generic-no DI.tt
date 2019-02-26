@@ -1,0 +1,278 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" fileName="$ObjDef$Controller.cs" #>
+<#@ include file="../Assemblies.tt" #>
+<#@ include file="../Common.tt" #>
+<#
+//Parameters
+string objDefName;
+string sns;
+string bns;
+string cns;
+#>
+<#
+try
+{
+	objDefName = Host.ResolveParameterValue(null, null, "objDefName");
+}
+catch
+{
+	objDefName = "Todo";
+}
+try
+{
+	sns = Host.ResolveParameterValue(null, null, "sns");
+	sns = string.IsNullOrEmpty(sns) ? "Controllers" : sns;
+}
+catch
+{
+	sns = "Controllers";
+}
+try
+{
+	cns = Host.ResolveParameterValue(null, null, "cns");
+	cns = string.IsNullOrEmpty(cns) ? "Controllers" : cns;
+}
+catch
+{
+	cns = "Common";
+}
+try
+{
+	bns = Host.ResolveParameterValue(null, null, "bns");
+	bns = string.IsNullOrEmpty(bns) ? "Domain" : bns;
+}
+catch
+{
+	bns = "Domain";
+}
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Configuration;
+
+using Iv.Common;
+using Iv.Data;
+using Iv.Data.Ado;
+using <#= cns #>;
+using <#= bns #>;
+
+namespace <#= sns #>
+{
+<# CodeGen(objDefName); #>
+}
+
+ 
+<#+  
+  // Insert any template procedures here
+ 	public void CodeGen(string objDefName)
+	{
+		ObjectDef o = ObjectDefLoader.Load(ConnectionString, objDefName);
+		if(o != null) 
+		{
+#>
+	public partial class <#= o.Name #>Controller : ApiController
+	{
+
+        private string cnnString = ConfigurationManager.ConnectionStrings["DataConnection"].ConnectionString;
+        private string cnnStringMeta = ConfigurationManager.ConnectionStrings["MetadataConnection"].ConnectionString;
+
+		public <#= o.Name #>Controller()
+		{
+		}
+			
+<#+
+			GenerateGetAll(o);
+			GenerateGetPage(o);
+			GenerateGet(o);
+			GenerateGetNew(o);
+			GeneratePost(o);
+			GeneratePut(o);
+			GenerateDelete(o);
+#>
+	}
+<#+
+		}
+	}
+	
+	private void GenerateMethod(ObjectDef o)
+	{
+#>
+
+<#+
+	
+	}
+	
+	private void GenerateGetAll(ObjectDef o)
+	{
+#>
+        [ActionName("list")]
+        public IEnumerable<<#= o.Name #>> GetAll()
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                var list = model.GetAll();
+                return list;
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateGetPage(ObjectDef o)
+	{
+#>
+        [ActionName("page")]
+        public PageData<<#= o.Name #>> GetPage(int? pageNo)
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                int pageNumber = pageNo.HasValue ? pageNo.Value : 1;
+                int pageSize = 20;
+                var data = model.Filter(null, pageNumber, pageSize);
+                return data;
+            }
+        }
+
+<#+
+
+	}
+	
+	private void GenerateGet(ObjectDef o)
+	{
+		var key = o.GetKey();
+		var keyName = key.Name.ToCamelCase();
+#>
+        [ActionName("item")]
+        public <#= o.Name #> Get(<#= key.NetTypeName #> <#= keyName #>)
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                var o = model.Get(<#= keyName #>);
+                return o;
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateGetNew(ObjectDef o)
+	{
+#>
+        [ActionName("item-new")]
+        public <#= o.Name #> GetNew()
+        {
+            var model = new <#= o.Name #>Model();
+            var o = model.GetNew();
+            return o;
+        }
+
+<#+
+	
+	}
+	
+	private void GeneratePost(ObjectDef o)
+	{
+		var key = o.GetKey();
+		var keyName = key.Name.ToCamelCase();
+#>
+        [ActionName("post")]
+        [HttpPost]
+        public void Post(<#= key.NetTypeName #> <#= keyName #>, [FromBody]<#= o.Name #> value)
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                // value.SetNew();
+                var ov = rep.Find(id);
+                if (ov == null)
+                {
+                    value.SetNew();
+                }
+                else
+                {
+                    value.SetDirty();
+                }
+                model.Save(value);
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GeneratePut(ObjectDef o)
+	{
+		var key = o.GetKey();
+		var keyName = key.Name.ToCamelCase();
+#>
+        [ActionName("put")]
+        public void Put(<#= key.NetTypeName #> <#= keyName #>, [FromBody]<#= o.Name #> value)
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                var ov = rep.Find(id);
+                if(ov == null)
+                {
+                    value.SetNew();
+                }
+                else
+                {
+                    value.SetDirty();
+                }
+                model.Save(value);
+            }
+        }
+
+<#+
+	
+	}
+	
+	private void GenerateDelete(ObjectDef o)
+	{
+		var key = o.GetKey();
+		var keyName = key.Name.ToCamelCase();
+#>
+        [ActionName("delete")]
+        public void Delete(<#= key.NetTypeName #> <#= keyName #>)
+        {
+            using (IRepositoryObjectDef<ObjectDef> odRep = new ObjectDefAdoRepository(cnnStringMeta))
+            using (IRepositoryObjectDef<<#= o.Name #>> rep = new AdoSqlRepository<<#= o.Name #>>(cnnString, "dbo"))
+            {
+                var objDef = odRep.Find("<#= o.Name #>");
+                rep.SetMetadata(objDef);
+                var model = new <#= o.Name #>Model(rep);
+                var value = model.Get(<#= keyName #>);
+                value.SetDeleted();
+                model.Delete(value);
+            }
+        }
+
+<#+
+	
+	}
+#>
