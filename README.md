@@ -8,7 +8,7 @@ The code uses the [Razor Templates](https://github.com/volkovku/RazorTemplates) 
 Let's say we have a model called <code>EnumModel</code> with two properties: <code>string Name</code> and <code>IDictionary<string, int> Data</code>.
 We want to generate an enum named using the <code>Name</code> property and the values based om <code>Data</code> dictionary.
 
-The <code>EnumModel</code> class is shiwn below:
+The <code>EnumModel</code> class is shown below:
 ``` C#
     public class EnumModel
     {
@@ -102,4 +102,3 @@ Other examples include:
  - generate a class based on a simple metadata model (<code>MetaModel</code> class and *Model.cshtml* template)
  - generate a PowerShell script based on a specific cmdlet metadata, stored in an Xml file (<code>CmdLet</code> class and *Script.cshtml* template)
  - generate a customers HTML table, based on a list of customers stored in a SQL Server DB (<code>Customer</code> class and *Customers.cshtml* template)
- 
