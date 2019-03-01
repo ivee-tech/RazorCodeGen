@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Iv.Metadata;
 using RazorCodeGen.Customers;
+using RazorCodeGen.Data;
 using RazorCodeGen.Models;
 
 namespace RazorCodeGen
@@ -55,6 +56,43 @@ namespace RazorCodeGen
                 Console.WriteLine(output.Data);
             else
                 Console.WriteLine(output.Message);
+
+            var context = new DataContext();
+            var data = context.DataModels;
+            for (var i = 0; i < 10; i++)
+            {
+                var id = new Random().Next(1, 9999);
+                var status = "";
+                switch(id % 3)
+                {
+                    case 0:
+                        status = "New";
+                        break;
+                    case 1:
+                        status = "InProgress";
+                        break;
+                    case 2:
+                        status = "Completed";
+                        break;
+                    default:
+                        status = "New";
+                        break;
+                }
+                data.Add(new DataModel() { Id = id, Name = $"A-{id}", Status = status });
+            }
+            context.SaveChanges();
+            var enumModel2 = new EnumModel() { Name = "Status" };
+            var statusList = context.DataModels.Select(d => d.Status).Distinct().ToList();
+            foreach(var s in statusList)
+            {
+                enumModel2.Data.Add(s, statusList.IndexOf(s));
+            }
+            output = GenerateCode<EnumModel>(enumModel2, @"Templates\Enum.cshtml");
+            if (output.Result)
+                Console.WriteLine(output.Data);
+            else
+                Console.WriteLine(output.Message);
+
 
 
             Console.ReadKey();

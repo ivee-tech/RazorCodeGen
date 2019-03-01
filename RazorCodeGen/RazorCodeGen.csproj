@@ -90,6 +90,9 @@
     <Compile Include="Customers\CustomerDataQuerySpecification.cs" />
     <Compile Include="Customers\CustomerModelBuilder.cs" />
     <Compile Include="Customers\DeliveryProduct.cs" />
+    <Compile Include="Data\DataContext.cs" />
+    <Compile Include="Data\DataModel.cs" />
+    <Compile Include="Data\DataModelBuilder.cs" />
     <Compile Include="ICodeGenerator.cs" />
     <Compile Include="Models\EnumModel.cs" />
     <Compile Include="Models\Field.cs" />
